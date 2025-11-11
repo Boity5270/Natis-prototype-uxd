@@ -1,0 +1,526 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>NaTIS Prototype (Redesign)</title>
+  <meta name="description" content="Mid/high-fidelity NaTIS prototype Book licence test & Renew vehicle licence flows" />
+  <style>
+    /* ---------- Design Tokens ---------- */
+    :root{
+      --primary-900:#0D47A1;  /* dark blue */
+      --primary-700:#1976D2;  /* main button blue */
+      --bg:#E8F0FE;           /* light blue background */
+      --card:#ffffff;
+      --muted:#5f6f82;
+      --success:#1b9a59;
+      --danger:#d32f2f;
+      --radius:12px;
+      --max-width:980px;
+      --space:16px;
+      --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      --base-size:16px;
+    }
+
+    /* High contrast / large text modifiers will toggle classes on <body> */
+    body.high-contrast {
+      --primary-900: #000000;
+      --primary-700: #000000;
+      --bg: #ffffff;
+      --card: #ffffff;
+      color-scheme: light;
+    }
+    body.large-text {
+      --base-size:18px;
+    }
+
+    html,body{height:100%;}
+    body{
+      font-family:var(--font-sans);
+      font-size:var(--base-size);
+      margin:0;
+      background: linear-gradient(180deg, var(--bg) 0%, #f7f9ff 100%);
+      color:var(--primary-900);
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      line-height:1.4;
+    }
+
+    .container{
+      max-width:var(--max-width);
+      margin:28px auto;
+      padding:0 20px;
+    }
+
+    header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom:20px;
+    }
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:12px;
+    }
+    .logo {
+      width:56px;height:56px;border-radius:12px;background:var(--primary-700);display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:20px;
+      box-shadow:0 6px 18px rgba(13,71,161,0.08);
+    }
+    .site-title{font-size:20px;font-weight:700;}
+    .gov-sub{font-size:12px;color:var(--muted);}
+
+    .access-controls{display:flex;gap:8px;align-items:center;}
+    .small-btn{background:none;border:1px solid rgba(13,71,161,0.12);padding:8px 12px;border-radius:8px;cursor:pointer;font-weight:600;color:var(--primary-900);}
+    .small-btn:focus{outline:3px solid rgba(25,118,210,0.16);}
+
+    /* ---------- Home tiles ---------- */
+    .hero{display:grid;grid-template-columns:1fr 380px;gap:20px;align-items:start;}
+    .card{
+      background:var(--card);border-radius:var(--radius);padding:22px;box-shadow:0 8px 30px rgba(13,71,161,0.06);
+    }
+    .primary-actions{display:flex;flex-direction:column;gap:14px;}
+    .action-tile{
+      display:flex;align-items:center;gap:14px;padding:20px;border-radius:12px;background:linear-gradient(180deg, rgba(25,118,210,0.06), rgba(25,118,210,0.03));cursor:pointer;border:1px solid rgba(13,71,161,0.06);
+    }
+    .action-tile h3{margin:0;font-size:20px;}
+    .tile-sub{color:var(--muted);font-size:14px;}
+
+    /* Sidebar quick links */
+    .quick-links{border-left:1px solid rgba(13,71,161,0.04);padding-left:18px;}
+    .ql-title{font-weight:700;margin-bottom:10px;}
+    .ql-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:10px;}
+    .ql-list a{display:block;padding:10px;border-radius:10px;background:linear-gradient(180deg,#fff,#f6faff);text-decoration:none;color:var(--primary-900);border:1px solid rgba(13,71,161,0.04);}
+
+    /* ---------- Forms & steps ---------- */
+    .panel{background:var(--card);padding:22px;border-radius:12px;box-shadow:0 6px 18px rgba(13,71,161,0.04);}
+    form{display:grid;gap:14px;}
+    label{font-size:14px;font-weight:600;color:var(--primary-900);}
+    input[type="text"], input[type="password"], input[type="date"], input[type="tel"], input[type="number"]{
+      padding:12px 14px;border-radius:10px;border:1px solid rgba(13,71,161,0.12);font-size:15px;
+    }
+    input:focus{outline:3px solid rgba(25,118,210,0.12);border-color:var(--primary-700);}
+
+    .btn{
+      display:inline-block;background:var(--primary-700);color:white;padding:12px 18px;border-radius:10px;border:none;font-weight:700;cursor:pointer;
+      box-shadow:0 8px 20px rgba(25,118,210,0.12);
+    }
+    .btn.secondary{background:transparent;color:var(--primary-900);border:1px solid rgba(13,71,161,0.08);}
+
+    .step-indicator{display:flex;gap:10px;align-items:center;margin-bottom:8px;}
+    .step{padding:8px 12px;border-radius:999px;background:#f0f6ff;border:1px solid rgba(13,71,161,0.04);font-weight:700;font-size:13px;color:var(--primary-900);}
+    .step.active{background:var(--primary-700);color:white;border:none;}
+
+    .muted-note{color:var(--muted);font-size:13px;}
+
+    /* Booking calendar simple layout */
+    .calendar-wrap{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap;}
+    .slot-list{display:flex;flex-direction:column;gap:8px;}
+    .slot{padding:10px;border-radius:8px;border:1px dashed rgba(13,71,161,0.06);display:flex;justify-content:space-between;align-items:center;}
+    .slot .time{font-weight:700;}
+
+    /* confirmation */
+    .confirm-illustr{width:84px;height:84px;border-radius:50%;background:var(--primary-700);display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:28px;margin-bottom:12px;}
+
+    footer{opacity:0.9;margin-top:28px;color:var(--muted);font-size:13px;text-align:center;}
+
+    /* Responsive */
+    @media (max-width:980px){
+      .hero{grid-template-columns:1fr;}
+      .logo{width:48px;height:48px;}
+    }
+  </style>
+</head>
+<body>
+  <div class="container" id="app">
+    <header>
+      <div class="brand">
+        <div class="logo" aria-hidden="true">N</div>
+        <div>
+          <div class="site-title">NaTIS</div>
+          <div class="gov-sub">National Traffic Information System Prototype</div>
+        </div>
+      </div>
+
+      <div class="access-controls" role="toolbar" aria-label="Accessibility controls">
+        <button class="small-btn" id="toggle-contrast" aria-pressed="false" title="Toggle high contrast">High contrast</button>
+        <button class="small-btn" id="toggle-large" aria-pressed="false" title="Increase text size">Large text</button>
+      </div>
+    </header>
+
+    <!-- ---------- HOME (default) ---------- -->
+    <main id="homeView">
+      <section class="hero" aria-labelledby="homeHeading">
+        <div class="card">
+          <h1 id="homeHeading">Welcome to NaTIS</h1>
+          <p class="muted-note">Quickly renew a vehicle licence or book a driver’s licence test designed with accessibility and clarity in mind.</p>
+
+          <div style="height:18px;"></div>
+
+          <div class="primary-actions" role="list">
+            <div class="action-tile" role="listitem" tabindex="0" id="tile-renew" aria-label="Renew Vehicle Licence">
+              <div>
+                <h3>Renew Vehicle Licence</h3>
+                <div class="tile-sub">Enter reg. details & pay securely</div>
+              </div>
+              <div style="margin-left:auto;"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 12h18M12 3v18" stroke="#0D47A1" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            </div>
+
+            <div class="action-tile" role="listitem" tabindex="0" id="tile-book" aria-label="Book Licence Test">
+              <div>
+                <h3>Book a Licence Test</h3>
+                <div class="tile-sub">Choose a slot, confirm & receive a booking number</div>
+              </div>
+              <div style="margin-left:auto;"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 12h18M12 3v18" stroke="#0D47A1" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            </div>
+
+            <div class="action-tile" role="listitem" tabindex="0" id="tile-status" aria-label="Check Licence Status">
+              <div>
+                <h3>Check Licence Card / Status</h3>
+                <div class="tile-sub">Quickly view progress of existing bookings</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <aside class="quick-links">
+          <div class="ql-title">Quick Links</div>
+          <ul class="ql-list" aria-label="Quick links">
+            <li><a href="#" id="link-faq">FAQ & Help</a></li>
+            <li><a href="#" id="link-contact">Contact Us</a></li>
+            <li><a href="#" id="link-rules">Booking rules</a></li>
+          </ul>
+        </aside>
+      </section>
+    </main>
+
+    <!-- ---------- LOGIN for Booking Flow ---------- -->
+    <section id="loginView" style="display:none;" aria-hidden="true">
+      <div class="panel">
+        <div class="step-indicator" aria-hidden="true">
+          <div class="step active">Step 1</div>
+          <div class="step">Step 2</div>
+          <div class="step">Step 3</div>
+        </div>
+
+        <h2>Log in to continue</h2>
+        <p class="muted-note">Use your ID number and surname to continue. Enter exactly as printed on ID.</p>
+
+        <form id="loginForm" novalidate>
+          <div>
+            <label for="idNumber">ID Number</label>
+            <input id="idNumber" name="idNumber" inputmode="numeric" type="text" maxlength="13" placeholder="e.g. 8001015009087" aria-describedby="idHelp" required />
+            <div id="idHelp" class="muted-note">We will only use this to look up bookings - data must match official records.</div>
+          </div>
+
+          <div>
+            <label for="surname">Surname</label>
+            <input id="surname" name="surname" type="text" placeholder="Enter surname" required />
+          </div>
+
+          <div style="display:flex;gap:12px;margin-top:6px;">
+            <button class="btn" type="submit">Log in</button>
+            <button class="btn secondary" type="button" id="loginCancel">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- ---------- BOOKING (Select slot) ---------- -->
+    <section id="bookingView" style="display:none;" aria-hidden="true">
+      <div class="panel">
+        <div class="step-indicator" aria-hidden="true">
+          <div class="step">Step 1</div>
+          <div class="step active">Step 2</div>
+          <div class="step">Step 3</div>
+        </div>
+
+        <h2>Book a Licence Test</h2>
+        <p class="muted-note">Select a date and preferred time slot.</p>
+
+        <form id="bookingForm">
+          <div>
+            <label for="testDate">Preferred date</label>
+            <input id="testDate" type="date" aria-required="true" required />
+          </div>
+
+          <div>
+            <label for="testTime">Preferred time</label>
+            <select id="testTime" required>
+              <option value="">Choose a time</option>
+              <option>08:00</option>
+              <option>10:00</option>
+              <option>12:00</option>
+              <option>14:00</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="centre">Testing centre</label>
+            <select id="centre" required>
+              <option value="">Choose centre</option>
+              <option>Tshwane Testing Centre</option>
+              <option>Johannesburg Testing Centre</option>
+              <option>Cape Town Testing Centre</option>
+            </select>
+          </div>
+
+          <div style="display:flex;gap:12px;margin-top:6px;">
+            <button class="btn" type="submit">Next — Review</button>
+            <button class="btn secondary" type="button" id="bookingBack">Back</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- ---------- BOOKING REVIEW & CONFIRM (includes payment simulation if needed) ---------- -->
+    <section id="bookingConfirmView" style="display:none;" aria-hidden="true">
+      <div class="panel">
+        <div class="step-indicator" aria-hidden="true">
+          <div class="step">Step 1</div>
+          <div class="step">Step 2</div>
+          <div class="step active">Step 3</div>
+        </div>
+
+        <h2>Confirm Booking</h2>
+        <div id="reviewBox" style="padding:14px;border-radius:10px;border:1px solid rgba(13,71,161,0.04);margin-bottom:12px;">
+          <div><strong id="rv-date">Date:</strong> <span id="rv-date-val"></span></div>
+          <div><strong id="rv-time">Time:</strong> <span id="rv-time-val"></span></div>
+          <div><strong id="rv-centre">Centre:</strong> <span id="rv-centre-val"></span></div>
+          <div style="margin-top:8px;" class="muted-note">Fee: R120.00 — payment is processed instantly and you will receive an SMS & email confirmation.</div>
+        </div>
+
+        <div style="display:flex;gap:12px;">
+          <button class="btn" id="confirmBooking">Confirm & Pay</button>
+          <button class="btn secondary" id="editBooking">Edit</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- BOOKING SUCCESS ---------- -->
+    <section id="bookingSuccessView" style="display:none;" aria-hidden="true">
+      <div class="panel" role="status" aria-live="polite">
+        <div class="confirm-illustr" aria-hidden="true">✓</div>
+        <h2>Booking Confirmed</h2>
+        <p class="muted-note">Thank you, your booking number is shown below. You will also receive an email and SMS.</p>
+        <div style="margin-top:12px;padding:12px;background:#f5fcf7;border-radius:8px;border:1px solid rgba(27,154,89,0.08);">
+          <strong>Booking number</strong>
+          <div id="bookingNumber" style="font-size:18px;font-weight:800;color:var(--primary-900);margin-top:6px;">—</div>
+        </div>
+
+        <div style="margin-top:14px;">
+          <button class="btn" id="backHomeFromBooking">Back to Home</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- RENEW VEHICLE LICENCE (simple flow) ---------- -->
+    <section id="renewView" style="display:none;" aria-hidden="true">
+      <div class="panel">
+        <h2>Renew Vehicle Licence</h2>
+        <p class="muted-note">Enter your vehicle registration number to begin renewal.</p>
+
+        <form id="renewForm">
+          <div>
+            <label for="regNumber">Vehicle Registration Number</label>
+            <input id="regNumber" type="text" placeholder="e.g. CA 123-456" required />
+          </div>
+
+          <div>
+            <label for="ownerId">Owner ID Number</label>
+            <input id="ownerId" type="text" maxlength="13" placeholder="ID number as per registration" required />
+          </div>
+
+          <div style="display:flex;gap:12px;margin-top:6px;">
+            <button class="btn" type="submit">Proceed to Payment</button>
+            <button class="btn secondary" type="button" id="renewCancel">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- ---------- PAYMENT (Renewal) ---------- -->
+    <section id="paymentView" style="display:none;" aria-hidden="true">
+      <div class="panel">
+        <h2>Confirm Payment</h2>
+        <p class="muted-note">Secure payment. You will receive a receipt and confirmation.</p>
+
+        <form id="paymentForm">
+          <div>
+            <label for="cardNumber">Card number</label>
+            <input id="cardNumber" type="text" inputmode="numeric" placeholder="1234 5678 9012 3456" maxlength="19" required />
+          </div>
+
+          <div style="display:flex;gap:12px;">
+            <div style="flex:1;">
+              <label for="expiry">Expiry (MM/YY)</label>
+              <input id="expiry" type="text" placeholder="MM/YY" maxlength="5" required />
+            </div>
+            <div style="width:120px;">
+              <label for="cvv">CVV</label>
+              <input id="cvv" type="text" maxlength="4" placeholder="123" required />
+            </div>
+          </div>
+
+          <div style="margin-top:6px;" class="muted-note">Amount: <strong>R450.00</strong></div>
+
+          <div style="display:flex;gap:12px;margin-top:12px;">
+            <button class="btn" type="submit">Pay Now</button>
+            <button class="btn secondary" type="button" id="payCancel">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- ---------- PAYMENT SUCCESS ---------- -->
+    <section id="paymentSuccessView" style="display:none;" aria-hidden="true">
+      <div class="panel" role="status" aria-live="polite">
+        <div class="confirm-illustr" aria-hidden="true">✓</div>
+        <h2>Payment Successful</h2>
+        <p class="muted-note">Your vehicle licence has been renewed. A receipt and confirmation have been sent.</p>
+
+        <div style="margin-top:12px;padding:12px;background:#f5fcf7;border-radius:8px;border:1px solid rgba(27,154,89,0.08);">
+          <strong>Transaction reference</strong>
+          <div id="txnRef" style="font-size:18px;font-weight:800;color:var(--primary-900);margin-top:6px;">—</div>
+        </div>
+
+        <div style="margin-top:14px;">
+          <button class="btn" id="backHomeFromPayment">Back to Home</button>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      Prototype • Accessibility-minded redesign • Not an official NaTIS product
+    </footer>
+  </div>
+
+  <script>
+    // ---------- Simple client-side navigation & logic ----------
+    const views = {
+      home: document.getElementById('homeView'),
+      login: document.getElementById('loginView'),
+      booking: document.getElementById('bookingView'),
+      bookingConfirm: document.getElementById('bookingConfirmView'),
+      bookingSuccess: document.getElementById('bookingSuccessView'),
+      renew: document.getElementById('renewView'),
+      payment: document.getElementById('paymentView'),
+      paymentSuccess: document.getElementById('paymentSuccessView')
+    };
+
+    function show(viewKey) {
+      Object.values(views).forEach(v => {
+        v.style.display = 'none';
+        v.setAttribute('aria-hidden','true');
+      });
+      const v = views[viewKey];
+      if (v) {
+        v.style.display = '';
+        v.removeAttribute('aria-hidden');
+        v.scrollIntoView({behavior:'smooth'});
+      }
+    }
+
+    // Home tiles
+    document.getElementById('tile-book').addEventListener('click', () => show('login'));
+    document.getElementById('tile-book').addEventListener('keydown', (e) => { if(e.key==='Enter') show('login'); });
+
+    document.getElementById('tile-renew').addEventListener('click', () => show('renew'));
+    document.getElementById('tile-renew').addEventListener('keydown', (e) => { if(e.key==='Enter') show('renew'); });
+
+    // Login flow
+    document.getElementById('loginForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const id = document.getElementById('idNumber').value.trim();
+      const surname = document.getElementById('surname').value.trim();
+      if (!id || !surname) {
+        alert('Please enter both ID number and surname.');
+        return;
+      }
+      // simulated validation
+      show('booking');
+    });
+    document.getElementById('loginCancel').addEventListener('click', () => show('homeView' in window ? 'home' : 'home'));
+
+    // Booking form
+    document.getElementById('bookingForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const d = document.getElementById('testDate').value;
+      const t = document.getElementById('testTime').value;
+      const c = document.getElementById('centre').value;
+      if (!d || !t || !c) { alert('Please choose date, time and centre.'); return; }
+      // populate review
+      document.getElementById('rv-date-val').textContent = d;
+      document.getElementById('rv-time-val').textContent = t;
+      document.getElementById('rv-centre-val').textContent = c;
+      show('bookingConfirm');
+    });
+    document.getElementById('bookingBack').addEventListener('click', () => show('login'));
+
+    // Booking confirmed
+    document.getElementById('confirmBooking').addEventListener('click', () => {
+      // fake payment & booking number creation
+      const bookingNum = 'BKG-' + Math.random().toString(36).substring(2,9).toUpperCase();
+      document.getElementById('bookingNumber').textContent = bookingNum;
+      show('bookingSuccess');
+    });
+    document.getElementById('editBooking').addEventListener('click', () => show('booking'));
+
+    document.getElementById('backHomeFromBooking').addEventListener('click', () => show('home'));
+
+    // Renew flow
+    document.getElementById('renewForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const reg = document.getElementById('regNumber').value.trim();
+      const id = document.getElementById('ownerId').value.trim();
+      if (!reg || !id) { alert('Please enter the registration number and owner ID.'); return; }
+      // simulate lookup success
+      show('payment');
+    });
+    document.getElementById('renewCancel').addEventListener('click', () => show('home'));
+
+    // Payment simulation
+    document.getElementById('paymentForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const card = document.getElementById('cardNumber').value.trim();
+      const exp = document.getElementById('expiry').value.trim();
+      const cvv = document.getElementById('cvv').value.trim();
+      if (card.length < 12 || !exp || cvv.length < 3) { alert('Please enter valid card details.'); return; }
+
+      // simulate a processing delay
+      const ref = 'TXN-' + Math.random().toString(36).substring(2,10).toUpperCase();
+      document.getElementById('txnRef').textContent = ref;
+      show('paymentSuccess');
+    });
+    document.getElementById('payCancel').addEventListener('click', () => show('renew'));
+
+    document.getElementById('backHomeFromPayment').addEventListener('click', () => show('home'));
+
+    // Accessibility toggles
+    const body = document.body;
+    const contrastBtn = document.getElementById('toggle-contrast');
+    contrastBtn.addEventListener('click', () => {
+      const on = body.classList.toggle('high-contrast');
+      contrastBtn.setAttribute('aria-pressed', String(on));
+    });
+    const largeBtn = document.getElementById('toggle-large');
+    largeBtn.addEventListener('click', () => {
+      const on = body.classList.toggle('large-text');
+      largeBtn.setAttribute('aria-pressed', String(on));
+    });
+
+    // Start on home
+    show('home');
+
+    // Keyboard accessibility: ESC to return home from internal pages
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') show('home');
+    });
+
+    // small helper for showing the correct view key in show() above
+    // ensure backward compatibility with early reference
+    if (!window.showHomeKey) window.showHomeKey = 'home';
+  </script>
+</body>
+</html>
